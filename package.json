@@ -1,0 +1,30 @@
+{
+  "name": "lettera",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Lettera - AI-powered cover letter generator",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:frontend": "pnpm --filter frontend dev",
+    "dev:backend": "pnpm --filter backend start:dev",
+    "dev": "pnpm run dev:backend & pnpm run dev:frontend",
+    "build:frontend": "pnpm --filter frontend build",
+    "build:backend": "pnpm --filter backend build",
+    "build": "pnpm run build:backend && pnpm run build:frontend",
+    "lint": "pnpm --recursive run lint",
+    "format": "prettier --write .",
+    "typecheck": "pnpm --recursive run typecheck",
+    "prisma:generate": "pnpm --filter backend prisma:generate",
+    "prisma:migrate": "pnpm --filter backend prisma:migrate",
+    "prisma:studio": "pnpm --filter backend prisma:studio"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.0"
+}
+

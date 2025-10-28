@@ -1,0 +1,35 @@
+---
+globs: *.tsx
+alwaysApply: false
+---
+## Frontend
+
+### General Guidelines
+
+- Use React (functional components and hooks) for interactive UI. Keep static markup minimal and isolated.
+- Prefer small, focused components and colocate styles and tests with component files when appropriate.
+- Use path aliases configured in `tsconfig` and `vite.config.ts` (`@/components`, `@/lib`).
+
+### Guidelines for Styling (Tailwind + shadcn/ui)
+
+#### Tailwind
+
+- Use the project's Tailwind configuration (`tailwind.config.js`) to define theme tokens, dark mode, and variants.
+- Tailwind v4 in this repo uses the `@tailwindcss/postcss` PostCSS plugin; ensure `postcss.config.js` references that plugin.
+- Prefer utility classes for layout and small components; extract repeated patterns into component classes or shadcn/ui components.
+- Use the `cn()` helper (in `src/lib/utils.ts`) to compose className strings safely.
+- Keep design tokens (CSS variables) in `src/index.css` and reference them via Tailwind configuration.
+- Avoid coupling Tailwind utilities to implementation details—encapsulate complex styles in components.
+
+#### shadcn/ui
+
+- Add shadcn components via `npx shadcn@latest add <component>` and follow the `components.json` configuration.
+- Place custom components under `src/components/ui` and re-export common components from `src/components/index.ts`.
+
+### Guidelines for Accessibility
+
+- Follow ARIA best practices: use landmarks (`main`, `nav`) and appropriate roles for custom widgets.
+- Ensure interactive elements have keyboard support, visible focus styles, and accessible labels.
+- Use `aria-live` for dynamic notifications and `aria-hidden` for purely decorative elements.
+- Test with screen readers and keyboard-only navigation during feature development.
+

@@ -1,0 +1,34 @@
+# Lettera - AI Cover Letter Generator
+
+## Project Structure
+This is a monorepo using pnpm workspaces with:
+- Frontend: React 19 + Vite + TypeScript + Tailwind CSS 4 + shadcn/ui
+- Backend: NestJS + Prisma + PostgreSQL
+
+## Code Style
+- Use TypeScript for all new code
+- Follow ESLint and Prettier configurations in packages/eslint-config
+- Use functional components and hooks in React
+- Use dependency injection in NestJS
+
+## Path Aliases
+Frontend:
+- @/components -> src/components
+- @/lib -> src/lib
+
+## Database
+- Use Prisma for all database operations
+- Run migrations after schema changes: pnpm prisma:migrate
+- Generate client after schema changes: pnpm prisma:generate
+
+## UI Components
+- Use shadcn/ui components from src/components/ui
+- Install new components: npx shadcn@latest add [component-name]
+- Use Tailwind utility classes with the cn() helper
+
+## Commands
+- pnpm dev - Start both frontend and backend
+- pnpm build - Build both applications
+- pnpm lint - Run linting
+- pnpm format - Format code
+- pnpm typecheck - Check TypeScript types

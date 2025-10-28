@@ -1,0 +1,56 @@
+---
+description: Shared workspace rules for the Lettera monorepo.
+globs: **/*
+alwaysApply: true
+---
+# AI Rules for Lettera
+
+This file contains shared rules and guidelines that apply across the entire monorepo. Follow these rules when making changes to any workspace (frontend, backend or packages).
+
+## Tech Stack
+
+- React 19
+- TypeScript 5
+- Tailwind CSS 4
+- shadcn/ui
+- NestJS
+- Prisma
+- PostgreSQL
+- pnpm workspaces
+
+## Project Structure
+
+When introducing changes to the project, always follow the monorepo directory structure below:
+
+- `apps/` - application workspaces
+  - `apps/frontend/` - React web client (Vite + TypeScript + Tailwind + shadcn/ui)
+  - `apps/backend/` - NestJS API (Prisma + PostgreSQL)
+- `packages/` - shared configuration packages (ESLint, tsconfig, etc.)
+- `pnpm-workspace.yaml` - pnpm workspace configuration
+- `package.json` - root scripts and workspace orchestration
+
+When modifying the directory structure, update this file and the root documentation (`README.md`) accordingly.
+
+## Coding practices
+
+### Guidelines for clean code
+
+- Use feedback from linters (ESLint) and formatters (Prettier) to keep code consistent.
+- Prioritize error handling and surface clear, user-friendly error messages.
+- Use guard clauses and early returns to keep control flow simple and readable.
+- Avoid unnecessary nesting; keep happy path code clear and near the end of functions.
+- Prefer small, single-responsibility functions and well-named variables.
+- Add meaningful types and keep public APIs (functions, modules) well-typed.
+- Log errors with structured metadata (timestamp, userId, eventType) where appropriate.
+- Prefer domain-specific error classes or factories for consistent handling.
+
+## Shared configuration
+
+- Keep shared TypeScript settings in `packages/tsconfig` and ESLint rules in `packages/eslint-config`.
+- Use path aliases in frontend (`@/components`, `@/lib`) and reflect them in Vite and tsconfig.
+- Run global checks from the repository root:
+  - `pnpm install`
+  - `pnpm lint`
+  - `pnpm typecheck`
+
+If you add or remove workspaces, update `pnpm-workspace.yaml` and the relevant documentation.

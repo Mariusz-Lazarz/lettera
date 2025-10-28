@@ -18,7 +18,6 @@ Wielu kandydatów traci czas na ręczne dopasowywanie listów motywacyjnych do k
    - Przyjmwane tylko pliki PDF (limit rozmiaru: kilka MB).
    - Przyjmowane wyłącznie PDF-y zawierające osadzony tekst (tekstowy PDF). Skanowane obrazy bez warstwy tekstowej nie są akceptowane — upload odrzucany z komunikatem.
    - Maksymalnie 5 CV na użytkownika. Nazwy plików numerowane jako cv1..cvN.
-   - Walidacja duplikatów (dokładne dopasowanie treści hash) — duplikaty generują błąd i blokują upload.
    - Limit długości nazwy pliku; przy przekroczeniu zwracany błąd.
    - Brak automatycznej retencji: system NIE usuwa plików automatycznie. Przy przekroczeniu limitu użytkownik musi ręcznie usunąć istniejące CV, aby dodać nowe.
 
@@ -79,7 +78,6 @@ Wielu kandydatów traci czas na ręczne dopasowywanie listów motywacyjnych do k
   Kryteria akceptacji:
   - System akceptuje tylko pliki z rozszerzeniem .pdf.
   - Plik nie przekracza kilku MB; większe pliki są odrzucane z komunikatem.
-  - Duplikat treści (porównanie hash) jest wykrywany i upload jest odrzucany.
   - Maksymalnie 5 CV na konto; przekroczenie limitu blokuje upload z komunikatem.
   - Nazwy plików są numerowane jako cv1..cvN; istnieją limity długości nazwy.
 
@@ -134,13 +132,12 @@ Wielu kandydatów traci czas na ręczne dopasowywanie listów motywacyjnych do k
   Opis: Jako zespół techniczny chcemy zapisywać zdarzenia systemowe do pliku logów w celu zliczania KPI.
   Kryteria akceptacji:
   - Logi zawierają minimalne pola: timestamp, userId, eventType, metadata.
-  - Logi rejestrują zdarzenia: CV_uploaded, Letter_generated, OCR_performed, Extraction_failed, Duplicate_upload_attempt, File_deleted.
+  - Logi rejestrują zdarzenia: CV_uploaded, Letter_generated, OCR_performed, Extraction_failed, File_deleted.
 
 - ID: US-011
-  Tytuł: Obsługa limitu i duplikatów CV
-  Opis: Jako użytkownik chcę być informowany, gdy próbuję przesłać zduplikowane CV lub przekraczam limit 5 CV.
+  Tytuł: Obsługa limitu
+  Opis: Jako użytkownik chcę być informowany, gdy przekraczam limit 5 CV.
   Kryteria akceptacji:
-  - Przy próbie uploadu duplikatu użytkownik dostaje jasny komunikat o duplikacie i instrukcję (usuń istniejące lub zmień nazwę).
   - Przy próbie przekroczenia limitu 5 CV użytkownik otrzymuje komunikat i upload jest odrzucony.
 
 - ID: US-012
@@ -172,7 +169,6 @@ Wielu kandydatów traci czas na ręczne dopasowywanie listów motywacyjnych do k
   - Liczba uploadów CV (total, per-user average).
   - Liczba wygenerowanych listów (total, per-user average).
   - Liczba sukcesów ekstrakcji vs. liczba Extraction_failed.
-  - Liczba prób uploadu duplikatów.
   - Liczba błędów pipeline'u AI i czas odpowiedzi modelu.
 
 - Logi i pomiar:

@@ -1,0 +1,25 @@
+---
+description: Backend and database rules for Lettera
+globs: apps/backend/src/**/*.ts
+alwaysApply: false
+---
+### Backend and Database
+
+These rules apply to the NestJS backend and database code in `apps/backend`.
+
+- Use **NestJS** idioms: dependency injection, modules, providers, and controllers.
+- Keep business logic in services and keep controllers thin (HTTP and validation wiring only).
+- Use **Prisma** as the ORM. Place the Prisma schema in `apps/backend/prisma/schema.prisma` and keep migrations under `apps/backend/prisma/migrations`.
+- Use a `PrismaService` that extends `PrismaClient` and registers lifecycle hooks (connect/disconnect) for proper integration with NestJS.
+- Load environment variables from `apps/backend/.env` (use `dotenv` or the framework's configuration module) and never commit secrets.
+- Add repository-like classes or services for DB access and prefer `prisma.client` from generated client (`@prisma/client`).
+- Run and commit Prisma migrations (`prisma migrate`) and keep `prisma:generate` up-to-date after schema changes.
+- Use Zod or class-validator for DTO validation where appropriate.
+- Centralize error handling and map database errors to user-friendly HTTP responses.
+
+## Security & Operations
+
+- Sanitize and validate all inputs before passing to Prisma.
+- Use connection pooling in production and configure database credentials via environment variables.
+- Log key events (CV_uploaded, Letter_generated, Extraction_failed, Duplicate_upload_attempt, File_deleted) with timestamp and userId where applicable.
+
