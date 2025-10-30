@@ -59,161 +59,82 @@ Notes on conventions used in endpoints below:
 
 ### CVs (cvs)
 
-Flow design choice: use S3 presigned uploads to avoid proxying binaries through backend. Two-step flow:
-1. Client requests a presigned upload URL (`POST /cvs/presign`) — backend enforces per-user limits and returns presigned PUT URL and an `upload_id` or temp `s3_key`.
-2. Client uploads file directly to S3 and then calls `POST /cvs` to confirm create record (or backend can accept a single multipart upload alternative if preferred).
+Simplified flow: the backend accepts direct uploads and performs the S3 upload internally. There are three endpoints: upload (create), list, and delete. We no longer use presigned URLs or separate metadata endpoints.
 
-1) Get presigned upload URL (enforce limits before issuing)
-- Method: POST
-- Path: `/cvs/presign`
-- Description: Return S3 presigned URL and metadata to upload a new CV. Backend checks per-user CV count (max 5).
-- Request JSON:
-```json
-{ "filename": "cv.pdf", "content_type": "application/pdf", "length": 123456 }
-```
-- Response 200:
-```json
-{ "s3_key": "temp/.../uuid.pdf", "upload_url": "https://...", "expires_in": 3600 }
-```
-- Errors:
-  - 400 — invalid filename, not a PDF, or size too large
-  - 403 — user reached max CVs (5)
-
-2) Confirm uploaded CV (create DB record)
+1) Upload CV (create + upload)
 - Method: POST
 - Path: `/cvs`
-- Description: Create `cvs` record after successful upload to S3. This call must be short and transactional; use advisory lock to enforce max 5 rule.
-- Request JSON:
-```json
-{ "s3_key": "temp/.../uuid.pdf", "filename": "cv.pdf" }
-```
+- Description: Accept a single file upload (multipart/form-data) with field name `cv` (PDF required) and optional `filename`. The server validates the file, enforces per-user limit (max 5 CVs), uploads the file to S3, and creates the `cvs` DB record in a single request.
+- Request: multipart/form-data with file `cv` (Content-Type: `application/pdf`) and optional `filename` string
 - Response 201:
 ```json
-{ "id": "uuid", "user_id": "uuid", "s3_key": "...", "filename": "cv.pdf", "created_at": "iso8601" }
+{ "id": "uuid", "user_id": "uuid", "filename": "cv.pdf", "s3_key": "...", "created_at": "iso8601" }
 ```
 - Errors:
-  - 400 — filename too long (>255), invalid s3_key
-  - 409 — user already has 5 CVs (race-protected check)
-  - 422 — S3 object missing or not text-based PDF (validation/OCR failed)
+  - 400 — invalid file (not PDF, missing file, filename too long)
+  - 403 — user reached max CVs (5)
+  - 422 — upload/S3 validation failed (e.g., file missing after upload, virus/OCR validation failed)
 
-3) List CVs (paginated)
+2) List CVs
 - Method: GET
 - Path: `/cvs`
-- Query params: `?limit=20&cursor=<created_at,id>&sort=desc` (default desc)
-- Description: List current user's CVs (most recent first)
+- Description: Return all CVs for the current authenticated user. No pagination is required because users can have at most 5 CVs.
 - Response 200:
 ```json
-{ "items": [{"id":"uuid","filename":"cv.pdf","created_at":"iso8601"}], "next_cursor": "<cursor>" }
+{ "items": [{"id":"uuid","filename":"cv.pdf","created_at":"iso8601"}] }
 ```
 
-4) Get CV metadata
-- Method: GET
-- Path: `/cvs/:id`
-- Description: Return CV metadata (no file contents). Access limited to owner via RLS/App auth.
-- Response 200:
-```json
-{ "id":"uuid","filename":"cv.pdf","s3_key":"...","created_at":"iso8601" }
-```
-
-5) Delete CV
+3) Delete CV
 - Method: DELETE
 - Path: `/cvs/:id`
-- Description: Deletes DB record and (recommended) deletes S3 object synchronously; if S3 deletion fails, schedule compensating job and report error.
+- Description: Delete the CV DB record and the S3 object (attempt synchronous deletion; if S3 deletion fails, schedule a retry and return 500). Access limited to owner.
 - Response 204 No Content
 - Errors:
   - 404 — not found
   - 403 — not owner
   - 500 — S3 deletion failed (retry/queue)
 
-### Extraction / OCR status
-- Extraction is performed asynchronously after CV confirm. Expose status and failure reason.
+### Letters (letters)
 
-1) Get extraction status
-- Method: GET
-- Path: `/cvs/:id/extraction`
-- Response 200:
-```json
-{ "status": "pending|success|failed", "extracted_text_sample": "...", "error": "..." }
-```
-- Errors:
-  - 404 — not found
-  - 403 — not owner
-
-### Job: Create Letter (AI pipeline)
-Design: POST creates a letter-generation job tied to a CV and job description. Generation can be async; return letter record with `status`.
-
-1) Create generation job / Create letter
+1) Create letter (generate)
 - Method: POST
 - Path: `/letters`
-- Description: Start pipeline: use chosen CV(s) and job description to generate HTML letter. Enforce per-user limit (max 5 letters).
+- Description: Start pipeline: use chosen CV and job description to generate HTML letter. Enforce per-user limit (max 5 letters).
 - Request JSON:
 ```json
 {
-  "cv_id": "uuid",         // optional: if omitted, use user's primary CV
+  "cv_id": "uuid",
   "job_title": "Senior Backend Engineer",
-  "job_description": "<text 1000-10000 chars>",
-  "preferences": { }
+  "job_description": "<text 1000-10000 chars>"
 }
 ```
-- Response 202 (accepted) or 201 if synchronous generation used:
+- Response 201 (synchronous generation):
 ```json
-{ "id":"uuid","user_id":"uuid","status":"pending|completed|failed","created_at":"iso8601" }
+{ "id":"uuid","user_id":"uuid","html":"<string>","status":"completed","created_at":"iso8601" }
 ```
 - Errors:
   - 400 — missing/invalid fields (job_description length), CV missing/extraction failed
   - 403 — user hit max letters (5)
   - 422 — AI provider error
 
-2) Get letter (metadata + HTML)
-- Method: GET
-- Path: `/letters/:id`
-- Description: Return letter metadata and HTML content (if generation complete). `html` can be large; consider streaming or omitting HTML in listing endpoints.
-- Response 200:
-```json
-{ "id":"uuid","user_id":"uuid","html":"<string>","pdf_s3_key":"...|null","status":"completed","created_at":"iso8601","updated_at":"iso8601" }
-```
-
-3) List letters (paginated)
+2) List letters
 - Method: GET
 - Path: `/letters`
-- Query: `?limit=20&cursor=...&sort=desc`
+- Description: Return all letters for the current authenticated user. No pagination is required because users can have at most 5 letters.
 - Response 200:
 ```json
-{ "items":[{"id":"uuid","status":"completed","created_at":"iso8601"}], "next_cursor":"..." }
+{ "items":[{"id":"uuid","html":"<string>","status":"completed","created_at":"iso8601","updated_at":"iso8601"}] }
 ```
 
-4) Edit letter text
-- Method: PATCH
-- Path: `/letters/:id`
-- Description: Save edits made by the user in the simple editor. Update `html` and `updated_at`.
-- Request JSON:
-```json
-{ "html": "<new html>" }
-```
-- Validation: `html` max length <= 200000 characters
-- Response 200: updated record
-- Errors:
-  - 400 — html too large
-  - 403 — not owner
-
-5) Generate PDF for a letter (server-side)
-- Method: POST
-- Path: `/letters/:id/generate-pdf`
-- Description: Synchronously or asynchronously render `html` to PDF and upload to S3; response contains `pdf_s3_key` and optionally a presigned download URL.
-- Response 200 (sync) or 202 (async):
-```json
-{ "pdf_s3_key": "...", "download_url": "https://..." }
-```
+3) Download letter as PDF
+- Method: GET
+- Path: `/letters/:id/download`
+- Description: Generates PDF from letter HTML and returns it as a file download (Content-Type: application/pdf, Content-Disposition: attachment).
+- Response 200: PDF binary stream
 - Errors:
   - 404 — letter not found
   - 403 — not owner
   - 500 — PDF generation failed
-
-6) Download PDF
-- Method: GET
-- Path: `/letters/:id/download` (redirect or return presigned URL)
-- Description: Returns or redirects to presigned S3 URL for download. Use short expiry.
-- Response 302 Location header (or 200 with URL in body)
 
 
 ## 3. Authentication & Authorization

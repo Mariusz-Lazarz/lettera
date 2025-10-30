@@ -18,7 +18,6 @@ export class CreateUserDto {
     type: String,
   })
   passwordHash: string;
-
 }
 
 // ========== User Update DTO ==========
@@ -34,7 +33,6 @@ export class UpdateUserDto {
     type: String,
   })
   passwordHash?: string;
-
 }
 
 // ========== User Response DTO ==========
@@ -62,7 +60,6 @@ export class UserResponseDto {
     type: Date,
   })
   createdAt: Date;
-
 }
 
 // ========== Cv Create DTO ==========
@@ -84,7 +81,6 @@ export class CreateCvDto {
     type: String,
   })
   filename: string;
-
 }
 
 // ========== Cv Update DTO ==========
@@ -106,7 +102,6 @@ export class UpdateCvDto {
     type: String,
   })
   filename?: string;
-
 }
 
 // ========== Cv Response DTO ==========
@@ -140,7 +135,6 @@ export class CvResponseDto {
     type: Date,
   })
   createdAt: Date;
-
 }
 
 // ========== Letter Create DTO ==========
@@ -162,7 +156,6 @@ export class CreateLetterDto {
     type: String,
   })
   pdfS3Key?: string;
-
 }
 
 // ========== Letter Update DTO ==========
@@ -190,7 +183,6 @@ export class UpdateLetterDto {
     type: Date,
   })
   updatedAt?: Date;
-
 }
 
 // ========== Letter Response DTO ==========
@@ -230,5 +222,4 @@ export class LetterResponseDto {
     type: Date,
   })
   updatedAt: Date;
-
 }
