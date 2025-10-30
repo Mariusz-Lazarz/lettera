@@ -111,10 +111,10 @@ Ensure you have the following installed:
    OPENROUTER_API_KEY=your_api_key_here
    
    # Storage (add when ready)
-   S3_ENDPOINT=your_s3_endpoint
-   S3_ACCESS_KEY=your_access_key
-   S3_SECRET_KEY=your_secret_key
-   S3_BUCKET=your_bucket_name
+   AWS_ACCESS_KEY_ID=
+   AWS_SECRET_ACCESS_KEY=
+   AWS_REGION=
+   S3_BUCKET_NAME=
    ```
 
 5. **Run database migrations**

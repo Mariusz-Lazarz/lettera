@@ -5,6 +5,11 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator dtos {
+  provider = "ts-node ./prisma/generators/dto-generator.ts"
+  output   = "../src"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")

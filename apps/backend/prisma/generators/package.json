@@ -1,0 +1,9 @@
+{
+  "name": "dto-generator",
+  "version": "1.0.0",
+  "main": "dto-generator.ts",
+  "bin": {
+    "dto-generator": "./dto-generator.ts"
+  }
+}
+
