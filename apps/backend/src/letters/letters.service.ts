@@ -330,7 +330,9 @@ export class LettersService {
    * @throws InternalServerErrorException for database or S3 errors
    */
   async deleteLetter(letterId: string, userId: string): Promise<void> {
-    this.logger.log(`Attempting to delete letter ${letterId} for user ${userId}`);
+    this.logger.log(
+      `Attempting to delete letter ${letterId} for user ${userId}`,
+    );
 
     try {
       // Step 1: Fetch letter and verify ownership
@@ -364,7 +366,9 @@ export class LettersService {
           // Use throwOnError=false for best-effort cleanup
           // We don't want S3 failures to block database deletion
           await this.storage.deleteFile(letter.pdfS3Key, false);
-          this.logger.log(`PDF deleted successfully from S3: ${letter.pdfS3Key}`);
+          this.logger.log(
+            `PDF deleted successfully from S3: ${letter.pdfS3Key}`,
+          );
         } catch (error) {
           // Log but continue - S3 deletion failure shouldn't block DB deletion
           this.logger.error(
@@ -395,7 +399,8 @@ export class LettersService {
       }
 
       // Log and wrap unexpected errors
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       const errorStack = error instanceof Error ? error.stack : undefined;
       this.logger.error(
         `Failed to delete letter ${letterId} for user ${userId}: ${errorMessage}`,

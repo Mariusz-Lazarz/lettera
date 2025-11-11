@@ -26,4 +26,22 @@ Infrastruktura i DevOps
 - **GitHub Actions**: CI/CD pipeline do testów, budowy obrazów i deployu.
 - **Hosting — DigitalOcean**: uruchamianie aplikacji w kontenerach / dropletach lub App Platform oraz użycie DigitalOcean Spaces jako S3.
 
+Testowanie
+----------
+
+### Testy jednostkowe
+- **Jest**: framework do testów jednostkowych i integracyjnych backendu (serwisy, kontrolery, walidatory, DTO).
+- **Vitest**: szybki framework do testów jednostkowych frontendu (zintegrowany z Vite).
+- **React Testing Library**: narzędzie do testowania komponentów React w izolacji.
+- **Supertest**: biblioteka do testowania endpointów HTTP API.
+
+### Testy E2E (End-to-End)
+- **Playwright**: nowoczesny framework do testów E2E aplikacji webowych (wieloplatformowy, headless, symulacja rzeczywistych scenariuszy użytkownika).
+- **Cypress**: alternatywny framework do testów E2E (opcjonalnie).
+
+### Dodatkowe narzędzia testowe
+- **JMeter / k6 / Artillery**: testy wydajnościowe i obciążeniowe API.
+- **OWASP ZAP**: skanowanie bezpieczeństwa aplikacji webowych.
+- **Lighthouse / axe DevTools**: testy dostępności (accessibility).
+
 

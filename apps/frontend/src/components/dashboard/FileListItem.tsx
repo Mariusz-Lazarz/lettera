@@ -54,7 +54,6 @@ interface FileListItemProps {
  * Używany zarówno dla CV jak i listów motywacyjnych
  */
 export function FileListItem({
-  id,
   title,
   subtitle,
   badge,

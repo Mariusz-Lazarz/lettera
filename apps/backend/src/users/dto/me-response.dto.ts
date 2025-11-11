@@ -26,4 +26,3 @@ export class MeResponseDto {
   })
   created_at: string;
 }
-

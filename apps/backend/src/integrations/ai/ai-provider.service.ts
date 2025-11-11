@@ -95,7 +95,9 @@ export class AiProviderService {
         );
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as {
+        choices?: Array<{ message?: { content?: string } }>;
+      };
 
       // Extract the generated HTML from response
       const html = this.extractHtmlFromResponse(data);
@@ -123,7 +125,7 @@ export class AiProviderService {
       return html;
     } catch (error) {
       // Handle timeout errors
-      if (error.name === 'AbortError') {
+      if (error instanceof Error && error.name === 'AbortError') {
         this.logger.error('AI request timeout');
         throw new UnprocessableEntityException(
           'AI service timeout. Please try again.',
@@ -154,6 +156,7 @@ export class AiProviderService {
   ): string {
     // Sanitize inputs - remove control characters
     const sanitize = (text: string): string => {
+      // eslint-disable-next-line no-control-regex
       return text.replace(/[\x00-\x1F\x7F-\x9F]/g, '');
     };
 
@@ -188,16 +191,25 @@ Return the HTML directly, without any surrounding text or code blocks.`;
    * Extract HTML content from AI API response
    * Handles different response formats
    */
-  private extractHtmlFromResponse(data: any): string {
+  private extractHtmlFromResponse(data: {
+    choices?: Array<{ message?: { content?: string } }>;
+  }): string {
     try {
       // OpenRouter/OpenAI format
-      if (data.choices && data.choices[0]?.message?.content) {
-        let content = data.choices[0].message.content;
+      if (
+        data.choices &&
+        Array.isArray(data.choices) &&
+        data.choices.length > 0
+      ) {
+        const firstChoice = data.choices[0];
+        if (firstChoice?.message?.content) {
+          let content: string = firstChoice.message.content;
 
-        // Remove markdown code blocks if present
-        content = content.replace(/```html\n?/g, '').replace(/```\n?/g, '');
+          // Remove markdown code blocks if present
+          content = content.replace(/```html\n?/g, '').replace(/```\n?/g, '');
 
-        return content.trim();
+          return content.trim();
+        }
       }
 
       throw new Error('Unexpected AI response format');

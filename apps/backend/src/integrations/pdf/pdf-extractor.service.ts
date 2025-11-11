@@ -107,7 +107,9 @@ export class PdfExtractorService {
         );
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as {
+        choices?: Array<{ message?: { content?: string } }>;
+      };
 
       // Extract text from response
       const extractedText = this.extractTextFromResponse(data);
@@ -129,7 +131,7 @@ export class PdfExtractorService {
       return extractedText;
     } catch (error) {
       // Handle timeout errors
-      if (error.name === 'AbortError') {
+      if (error instanceof Error && error.name === 'AbortError') {
         this.logger.error('PDF extraction timeout');
         throw new UnprocessableEntityException(
           'PDF extraction timeout. Please try again.',
@@ -155,11 +157,20 @@ export class PdfExtractorService {
   /**
    * Extract text content from OpenRouter API response
    */
-  private extractTextFromResponse(data: any): string {
+  private extractTextFromResponse(data: {
+    choices?: Array<{ message?: { content?: string } }>;
+  }): string {
     try {
       // OpenRouter/OpenAI format
-      if (data.choices && data.choices[0]?.message?.content) {
-        return data.choices[0].message.content.trim();
+      if (
+        data.choices &&
+        Array.isArray(data.choices) &&
+        data.choices.length > 0
+      ) {
+        const firstChoice = data.choices[0];
+        if (firstChoice?.message?.content) {
+          return firstChoice.message.content.trim();
+        }
       }
 
       throw new Error('Unexpected AI response format');

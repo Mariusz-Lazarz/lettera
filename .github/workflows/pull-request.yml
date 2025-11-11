@@ -1,0 +1,187 @@
+name: Pull Request
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '18'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        env:
+          SKIP_PRISMA: true
+
+      - name: Run linter
+        run: pnpm run lint
+
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '18'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm run prisma:generate
+
+      - name: Run frontend tests with coverage
+        run: pnpm --filter frontend test:cov
+        continue-on-error: false
+
+      - name: Run backend tests with coverage
+        run: pnpm --filter backend test:cov
+        continue-on-error: false
+
+      - name: Upload frontend coverage to artifacts
+        uses: actions/upload-artifact@v5
+        if: success() || failure()
+        with:
+          name: frontend-coverage
+          path: apps/frontend/coverage/
+          retention-days: 7
+
+      - name: Upload backend coverage to artifacts
+        uses: actions/upload-artifact@v5
+        if: success() || failure()
+        with:
+          name: backend-coverage
+          path: apps/backend/coverage/
+          retention-days: 7
+
+  status-comment:
+    name: Post Status Comment
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    if: always() && needs.lint.result == 'success' && needs.test.result == 'success'
+    permissions:
+      pull-requests: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Download frontend coverage
+        uses: actions/download-artifact@v6
+        with:
+          name: frontend-coverage
+          path: coverage/frontend
+
+      - name: Download backend coverage
+        uses: actions/download-artifact@v6
+        with:
+          name: backend-coverage
+          path: coverage/backend
+
+      - name: Parse coverage data
+        id: coverage
+        run: |
+          # Parse frontend coverage
+          if [ -f "coverage/frontend/coverage-summary.json" ]; then
+            FRONTEND_COV=$(cat coverage/frontend/coverage-summary.json | grep -o '"total":{"lines":{"total":[0-9]*,"covered":[0-9]*,"skipped":[0-9]*,"pct":[0-9.]*' | grep -o 'pct":[0-9.]*' | cut -d':' -f2 || echo "0")
+          else
+            FRONTEND_COV="N/A"
+          fi
+          
+          # Parse backend coverage
+          if [ -f "coverage/backend/coverage-summary.json" ]; then
+            BACKEND_COV=$(cat coverage/backend/coverage-summary.json | grep -o '"total":{"lines":{"total":[0-9]*,"covered":[0-9]*,"skipped":[0-9]*,"pct":[0-9.]*' | grep -o 'pct":[0-9.]*' | cut -d':' -f2 || echo "0")
+          else
+            BACKEND_COV="N/A"
+          fi
+          
+          echo "frontend_coverage=$FRONTEND_COV" >> $GITHUB_OUTPUT
+          echo "backend_coverage=$BACKEND_COV" >> $GITHUB_OUTPUT
+
+      - name: Post PR comment
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const frontendCov = '${{ steps.coverage.outputs.frontend_coverage }}';
+            const backendCov = '${{ steps.coverage.outputs.backend_coverage }}';
+            
+            const body = `## ✅ Pull Request Checks Passed
+            
+            All checks have completed successfully!
+            
+            ### 📊 Test Coverage
+            
+            | Workspace | Coverage |
+            |-----------|----------|
+            | Frontend  | ${frontendCov}% |
+            | Backend   | ${backendCov}% |
+            
+            ### ✓ Completed Checks
+            - ✓ Code linting
+            - ✓ Unit tests
+            
+            ---
+            *Generated by GitHub Actions*`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+

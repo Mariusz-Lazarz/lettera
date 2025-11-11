@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { ExtractJwt, Strategy } from 'passport-jwt';
+import { Strategy } from 'passport-jwt';
 import { Request } from 'express';
 import { PrismaService } from '../prisma.service';
 
@@ -16,8 +16,11 @@ export interface JwtPayload {
  * Extract JWT token from httpOnly cookie
  */
 const cookieExtractor = (req: Request): string | null => {
-  if (req && req.cookies && req.cookies.auth_token) {
-    return req.cookies.auth_token;
+  if (req && req.cookies && typeof req.cookies === 'object') {
+    const cookies = req.cookies as Record<string, string>;
+    if (cookies.auth_token) {
+      return cookies.auth_token;
+    }
   }
   return null;
 };
@@ -43,7 +46,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
    * @param payload - Decoded JWT payload
    * @returns User object that will be attached to request.user
    */
-  async validate(payload: JwtPayload) {
+  async validate(
+    payload: JwtPayload,
+  ): Promise<{ userId: string; email: string }> {
     // Verify user still exists in database
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },

@@ -14,7 +14,7 @@ export interface CurrentUserType {
  */
 export const CurrentUser = createParamDecorator(
   (data: unknown, ctx: ExecutionContext): CurrentUserType => {
-    const request = ctx.switchToHttp().getRequest();
+    const request = ctx.switchToHttp().getRequest<{ user: CurrentUserType }>();
     return request.user;
   },
 );

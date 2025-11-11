@@ -8,6 +8,7 @@ import {
   PutObjectCommand,
   DeleteObjectCommand,
   GetObjectCommand,
+  S3ClientConfig,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
@@ -42,7 +43,7 @@ export class StorageService {
     }
 
     // Initialize S3 client with credentials from environment
-    const s3Config: any = {
+    const s3Config: S3ClientConfig = {
       region: process.env.AWS_REGION || 'us-east-1',
       credentials: {
         accessKeyId,
@@ -166,11 +167,15 @@ export class StorageService {
       const response = await this.s3Client.send(command);
 
       // Convert stream to buffer
-      const stream = response.Body as any;
+      if (!response.Body) {
+        throw new InternalServerErrorException('No data received from S3');
+      }
+
+      const stream = response.Body as AsyncIterable<Uint8Array>;
       const chunks: Buffer[] = [];
 
       for await (const chunk of stream) {
-        chunks.push(chunk);
+        chunks.push(Buffer.from(chunk));
       }
 
       const buffer = Buffer.concat(chunks);

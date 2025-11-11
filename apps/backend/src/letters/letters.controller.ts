@@ -5,7 +5,6 @@ import {
   Delete,
   Body,
   UseGuards,
-  Request,
   HttpCode,
   HttpStatus,
   ValidationPipe,
@@ -28,6 +27,10 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { LettersService } from './letters.service';
 import { LetterPdfService } from './letter-pdf.service';
 import { GenerateLetterRequestDto } from './dto/generate-letter-request.dto';
+import {
+  CurrentUser,
+  CurrentUserType,
+} from '../common/decorators/current-user.decorator';
 import { LetterResponseDto } from '../generated-dtos';
 import { ListLettersResponseDto } from './dto/list-letters-response.dto';
 import { DownloadLetterParamsDto } from './dto/download-letter-params.dto';
@@ -74,9 +77,11 @@ export class LettersController {
     status: 500,
     description: 'Internal server error',
   })
-  async listLetters(@Request() req: any): Promise<ListLettersResponseDto> {
+  async listLetters(
+    @CurrentUser() user: CurrentUserType,
+  ): Promise<ListLettersResponseDto> {
     // Extract userId from JWT token (set by JwtAuthGuard)
-    const userId = req.user.userId;
+    const userId = user.userId;
 
     // Fetch letters from service
     const items = await this.lettersService.listByUser(userId);
@@ -134,11 +139,11 @@ export class LettersController {
     description: 'Internal server error',
   })
   async generateLetter(
-    @Request() req: any,
+    @CurrentUser() user: CurrentUserType,
     @Body() dto: GenerateLetterRequestDto,
   ): Promise<LetterResponseDto> {
     // Extract userId from JWT token (set by JwtAuthGuard)
-    const userId = req.user.userId;
+    const userId = user.userId;
 
     // Build command object
     const command = {
@@ -228,15 +233,18 @@ export class LettersController {
   async downloadLetter(
     @Param() params: DownloadLetterParamsDto,
     @Query('inline') inline?: string,
-    @Request() req?: any,
+    @CurrentUser() user?: CurrentUserType,
     @Response({ passthrough: false }) res?: ExpressResponse,
   ): Promise<void> {
     if (!res) {
       throw new InternalServerErrorException('Response object not available');
     }
+    if (!user) {
+      throw new InternalServerErrorException('User not authenticated');
+    }
 
     // Extract userId from JWT token (set by JwtAuthGuard)
-    const userId = req.user.userId;
+    const userId = user.userId;
     const letterId = params.id;
 
     // Convert inline query param to boolean (default: false for attachment)
@@ -288,7 +296,7 @@ export class LettersController {
   @ApiOperation({
     summary: 'Delete a letter',
     description:
-      'Permanently delete a cover letter. This action cannot be undone. Deletes the letter record and associated PDF file from storage. Frees up space in the user\'s letter quota (max 5).',
+      "Permanently delete a cover letter. This action cannot be undone. Deletes the letter record and associated PDF file from storage. Frees up space in the user's letter quota (max 5).",
   })
   @ApiParam({
     name: 'id',
@@ -318,10 +326,10 @@ export class LettersController {
   })
   async deleteLetter(
     @Param() params: DeleteLetterParamsDto,
-    @Request() req: any,
+    @CurrentUser() user: CurrentUserType,
   ): Promise<void> {
     // Extract userId from JWT token (set by JwtAuthGuard)
-    const userId = req.user.userId;
+    const userId = user.userId;
     const letterId = params.id;
 
     // Call service to delete letter

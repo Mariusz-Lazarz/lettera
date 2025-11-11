@@ -14,4 +14,3 @@ export class DeleteLetterParamsDto {
   @IsUUID('4', { message: 'Letter ID must be a valid UUID' })
   id: string;
 }
-

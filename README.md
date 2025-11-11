@@ -63,6 +63,14 @@ This project is built as a modern **monorepo** using pnpm workspaces.
 - **ESLint** - Code linting and quality enforcement
 - **Prettier** - Consistent code formatting
 
+### Testing
+- **[Jest](https://jestjs.io/)** - Unit and integration testing framework for backend
+- **[Vitest](https://vitest.dev/)** - Fast unit testing framework for frontend (Vite-native)
+- **[React Testing Library](https://testing-library.com/react)** - Testing utilities for React components
+- **[Supertest](https://github.com/ladjs/supertest)** - HTTP assertion library for API testing
+- **[Playwright](https://playwright.dev/)** - End-to-end testing framework for web applications
+- **[Cypress](https://www.cypress.io/)** - Alternative E2E testing framework (optional)
+
 ## 🚀 Getting Started Locally
 
 ### Prerequisites
@@ -228,20 +236,20 @@ pnpm test:e2e         # Run end-to-end tests (when implemented)
 - [x] Database schema design (User model)
 - [x] Development environment setup
 - [x] Shared TypeScript and ESLint configurations
+- [x] User authentication implementation (JWT/sessions)
+- [x] CV upload and validation logic
+- [x] PDF text extraction integration
+- [x] Openrouter.ai integration for AI generation
+- [x] S3 storage integration for file management
+- [x] Cover letter generation pipeline
+- [x] Text editor component
+- [x] PDF generation for download
+- [x] User profile and dashboard
+- [x] Error handling and user feedback
 
 ### 🚧 In Progress / To Do
 
-- [ ] User authentication implementation (JWT/sessions)
-- [ ] CV upload and validation logic
-- [ ] PDF text extraction integration
-- [ ] Openrouter.ai integration for AI generation
-- [ ] S3 storage integration for file management
-- [ ] Cover letter generation pipeline
-- [ ] Text editor component
-- [ ] PDF generation for download
-- [ ] User profile and dashboard
 - [ ] Logging system implementation
-- [ ] Error handling and user feedback
 - [ ] Deployment setup (Docker + DigitalOcean)
 - [ ] CI/CD pipeline (GitHub Actions)
 

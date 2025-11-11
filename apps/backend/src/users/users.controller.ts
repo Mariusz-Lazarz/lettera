@@ -111,4 +111,3 @@ export class UsersController {
     return this.usersService.getByIdMinimal(userId);
   }
 }
-

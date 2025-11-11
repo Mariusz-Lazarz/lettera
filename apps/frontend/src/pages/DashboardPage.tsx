@@ -63,7 +63,7 @@ export function DashboardPage() {
       toast.success('Wylogowano pomyślnie', {
         id: loadingToast,
       });
-    } catch (err) {
+    } catch {
       toast.error('Błąd wylogowania', {
         id: loadingToast,
         description: 'Spróbuj ponownie',

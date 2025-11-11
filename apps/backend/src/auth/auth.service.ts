@@ -8,13 +8,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma.service';
-import {
-  RegisterRequestDto,
-  RegisterResponseDto,
-  AuthUserDto,
-  LoginRequestDto,
-  LoginResponseDto,
-} from './dto';
+import { RegisterRequestDto, AuthUserDto, LoginRequestDto } from './dto';
 import { Prisma } from '@prisma/client';
 
 /**
@@ -40,7 +34,9 @@ export class AuthService {
    * @throws ConflictException if email already exists
    * @throws InternalServerErrorException for unexpected errors
    */
-  async register(dto: RegisterRequestDto): Promise<{ user: AuthUserDto; token: string }> {
+  async register(
+    dto: RegisterRequestDto,
+  ): Promise<{ user: AuthUserDto; token: string }> {
     try {
       // Normalize email (trim and lowercase)
       const email = dto.email.trim().toLowerCase();
@@ -126,7 +122,9 @@ export class AuthService {
    * @throws UnauthorizedException if credentials are invalid
    * @throws InternalServerErrorException for unexpected errors
    */
-  async login(dto: LoginRequestDto): Promise<{ user: { id: string; email: string }; token: string }> {
+  async login(
+    dto: LoginRequestDto,
+  ): Promise<{ user: { id: string; email: string }; token: string }> {
     try {
       // Normalize email (trim and lowercase)
       const email = dto.email.trim().toLowerCase();

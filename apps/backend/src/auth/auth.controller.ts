@@ -1,4 +1,11 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Res } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  Res,
+} from '@nestjs/common';
 import type { Response } from 'express';
 import {
   ApiTags,
@@ -82,7 +89,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<RegisterResponseDto> {
     const result = await this.authService.register(dto);
-    
+
     // Set JWT token in httpOnly cookie
     res.cookie('auth_token', result.token, {
       httpOnly: true,
@@ -91,7 +98,7 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       path: '/',
     });
-    
+
     // Return user data without token in body
     return {
       user: result.user,
@@ -153,7 +160,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<LoginResponseDto> {
     const result = await this.authService.login(dto);
-    
+
     // Set JWT token in httpOnly cookie
     res.cookie('auth_token', result.token, {
       httpOnly: true,
@@ -162,7 +169,7 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       path: '/',
     });
-    
+
     // Return user data without token in body
     return {
       user: result.user,
@@ -183,7 +190,7 @@ export class AuthController {
     status: 200,
     description: 'User successfully logged out',
   })
-  async logout(@Res({ passthrough: true }) res: Response): Promise<{ message: string }> {
+  logout(@Res({ passthrough: true }) res: Response): { message: string } {
     // Clear the auth cookie
     res.clearCookie('auth_token', {
       httpOnly: true,
@@ -191,7 +198,7 @@ export class AuthController {
       sameSite: 'lax',
       path: '/',
     });
-    
+
     return { message: 'Logged out successfully' };
   }
 }
