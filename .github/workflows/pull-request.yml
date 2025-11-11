@@ -78,9 +78,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Generate Prisma Client
-        run: pnpm run prisma:generate
-
       - name: Run frontend tests with coverage
         run: pnpm --filter frontend test:cov
         continue-on-error: false
