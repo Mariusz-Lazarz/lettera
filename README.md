@@ -1,4 +1,4 @@
-# Lettera
+# Lettera  
 
 > AI-powered cover letter generator that transforms your CV and job descriptions into tailored, professional cover letters in seconds.
 
