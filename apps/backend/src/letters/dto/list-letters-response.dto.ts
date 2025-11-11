@@ -18,14 +18,6 @@ export class LetterListItemDto {
   html: string;
 
   @ApiProperty({
-    description:
-      'Status of the letter - completed if PDF has been generated, pending otherwise',
-    enum: ['completed', 'pending'],
-    example: 'completed',
-  })
-  status: 'completed' | 'pending';
-
-  @ApiProperty({
     description: 'ISO 8601 timestamp of letter creation',
     type: String,
     example: '2025-10-30T12:00:00.000Z',

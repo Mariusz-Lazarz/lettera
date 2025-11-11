@@ -36,11 +36,11 @@ export class AuthService {
   /**
    * Registers a new user with email and password
    * @param dto - Registration request data
-   * @returns User data and JWT access token
+   * @returns User data and JWT access token (token for controller to set in cookie)
    * @throws ConflictException if email already exists
    * @throws InternalServerErrorException for unexpected errors
    */
-  async register(dto: RegisterRequestDto): Promise<RegisterResponseDto> {
+  async register(dto: RegisterRequestDto): Promise<{ user: AuthUserDto; token: string }> {
     try {
       // Normalize email (trim and lowercase)
       const email = dto.email.trim().toLowerCase();
@@ -78,6 +78,7 @@ export class AuthService {
         createdAt: user.createdAt,
       };
 
+      // Return both user and token (controller will handle cookie setting)
       return {
         user: userResponse,
         token,
@@ -121,11 +122,11 @@ export class AuthService {
   /**
    * Authenticates a user with email and password
    * @param dto - Login request data
-   * @returns User data and JWT access token
+   * @returns User data and JWT access token (token for controller to set in cookie)
    * @throws UnauthorizedException if credentials are invalid
    * @throws InternalServerErrorException for unexpected errors
    */
-  async login(dto: LoginRequestDto): Promise<LoginResponseDto> {
+  async login(dto: LoginRequestDto): Promise<{ user: { id: string; email: string }; token: string }> {
     try {
       // Normalize email (trim and lowercase)
       const email = dto.email.trim().toLowerCase();
@@ -178,7 +179,7 @@ export class AuthService {
         })}`,
       );
 
-      // Return response with minimal user data
+      // Return response with minimal user data and token (controller will handle cookie)
       return {
         user: {
           id: user.id,

@@ -318,9 +318,96 @@ export class LettersService {
   }
 
   /**
+   * Delete a letter by ID
+   * - Verifies letter ownership
+   * - Deletes associated PDF from S3 if exists
+   * - Deletes letter record from database
+   * - Frees up user's letter quota
+   *
+   * @param letterId - Letter ID to delete
+   * @param userId - User ID to verify ownership
+   * @throws NotFoundException if letter not found or user is not the owner
+   * @throws InternalServerErrorException for database or S3 errors
+   */
+  async deleteLetter(letterId: string, userId: string): Promise<void> {
+    this.logger.log(`Attempting to delete letter ${letterId} for user ${userId}`);
+
+    try {
+      // Step 1: Fetch letter and verify ownership
+      const letter = await this.prisma.letter.findUnique({
+        where: { id: letterId },
+        select: {
+          id: true,
+          userId: true,
+          pdfS3Key: true,
+        },
+      });
+
+      // Check if letter exists
+      if (!letter) {
+        this.logger.warn(`Letter not found: ${letterId}`);
+        throw new NotFoundException('Letter not found');
+      }
+
+      // Verify ownership - return 404 instead of 403 to avoid leaking existence
+      if (letter.userId !== userId) {
+        this.logger.warn(
+          `User ${userId} attempted to delete letter ${letterId} owned by ${letter.userId}`,
+        );
+        throw new NotFoundException('Letter not found');
+      }
+
+      // Step 2: Delete PDF from S3 if it exists
+      if (letter.pdfS3Key) {
+        this.logger.log(`Deleting PDF from S3: ${letter.pdfS3Key}`);
+        try {
+          // Use throwOnError=false for best-effort cleanup
+          // We don't want S3 failures to block database deletion
+          await this.storage.deleteFile(letter.pdfS3Key, false);
+          this.logger.log(`PDF deleted successfully from S3: ${letter.pdfS3Key}`);
+        } catch (error) {
+          // Log but continue - S3 deletion failure shouldn't block DB deletion
+          this.logger.error(
+            `Failed to delete PDF from S3: ${letter.pdfS3Key}, continuing with DB deletion`,
+            error,
+          );
+        }
+      }
+
+      // Step 3: Delete letter from database
+      await this.prisma.letter.delete({
+        where: { id: letterId },
+      });
+
+      this.logger.log(
+        `Letter ${letterId} deleted successfully for user ${userId}`,
+        {
+          event: 'letter_deleted',
+          userId,
+          letterId,
+          timestamp: new Date().toISOString(),
+        },
+      );
+    } catch (error) {
+      // Re-throw known exceptions
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+
+      // Log and wrap unexpected errors
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(
+        `Failed to delete letter ${letterId} for user ${userId}: ${errorMessage}`,
+        errorStack,
+      );
+      throw new InternalServerErrorException('Failed to delete letter');
+    }
+  }
+
+  /**
    * Maps a database letter record to API response format
    * - Converts camelCase to snake_case for timestamps
-   * - Determines status based on presence of pdfS3Key
    * - Converts dates to ISO 8601 strings
    *
    * @param letter - Letter record from database
@@ -336,8 +423,6 @@ export class LettersService {
     return {
       id: letter.id,
       html: letter.html,
-      // Status is 'completed' if PDF has been generated, 'pending' otherwise
-      status: letter.pdfS3Key ? 'completed' : 'pending',
       created_at: letter.createdAt.toISOString(),
       updated_at: letter.updatedAt.toISOString(),
     };

@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Delete,
   Body,
   UseGuards,
   Request,
@@ -30,6 +31,7 @@ import { GenerateLetterRequestDto } from './dto/generate-letter-request.dto';
 import { LetterResponseDto } from '../generated-dtos';
 import { ListLettersResponseDto } from './dto/list-letters-response.dto';
 import { DownloadLetterParamsDto } from './dto/download-letter-params.dto';
+import { DeleteLetterParamsDto } from './dto/delete-letter-params.dto';
 
 /**
  * Letters controller
@@ -269,5 +271,62 @@ export class LettersController {
 
     // Stream PDF to client
     res.send(result.buffer);
+  }
+
+  /**
+   * Delete a letter
+   * DELETE /letters/:id
+   * Requires JWT authentication
+   * @param params - Path parameters with letter ID (validated as UUID)
+   * @param req - Express request with user info from JWT
+   * @returns 204 No Content on successful deletion
+   */
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Delete a letter',
+    description:
+      'Permanently delete a cover letter. This action cannot be undone. Deletes the letter record and associated PDF file from storage. Frees up space in the user\'s letter quota (max 5).',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Letter ID (UUID)',
+    type: String,
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @ApiResponse({
+    status: 204,
+    description: 'Letter deleted successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - invalid UUID format',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - invalid or missing JWT token',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Not found - letter does not exist or user is not the owner',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error - deletion failed',
+  })
+  async deleteLetter(
+    @Param() params: DeleteLetterParamsDto,
+    @Request() req: any,
+  ): Promise<void> {
+    // Extract userId from JWT token (set by JwtAuthGuard)
+    const userId = req.user.userId;
+    const letterId = params.id;
+
+    // Call service to delete letter
+    await this.lettersService.deleteLetter(letterId, userId);
+
+    // Return 204 No Content (void return with @HttpCode decorator)
   }
 }

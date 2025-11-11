@@ -33,11 +33,9 @@ Wielu kandydatów traci czas na ręczne dopasowywanie listów motywacyjnych do k
    - Generowanie listu na podstawie danych z CV i opisu ogłoszenia przy użyciu integracji z AI.
    - Model samodzielnie wybiera ton i szablon (bez ręcznego wyboru w MVP).
    - Kontrola kosztów AI nie jest częścią MVP; system polega na limitach po stronie providera AI.
-   - Wygenerowany list dostępny do edycji w prostym edytorze tekstowym oraz z podglądem PDF.
    - Użytkownik może wygenerować maksymalnie 5 listów motywacyjnych - brak automatycznej retencji.
 
-6. Edycja i pobieranie
-   - Możliwość ręcznej edycji wygenerowanego listu w prostym edytorze; zapis zmian (brak wersjonowania i undo/redo).
+6. Pobieranie
    - Możliwość pobrania gotowego listu w formacie PDF (tylko PDF, bez innych formatów).
 
 7. Zarządzanie danymi i logowanie
@@ -106,47 +104,39 @@ Wielu kandydatów traci czas na ręczne dopasowywanie listów motywacyjnych do k
   - Wygenerowany list jest zapisywany i dostępny do edycji oraz pobrania.
 
 - ID: US-007
-  Tytuł: Edycja wygenerowanego listu
-  Opis: Jako użytkownik chcę edytować wygenerowany list w prostym edytorze i zapisać zmiany.
-  Kryteria akceptacji:
-  - Edytor umożliwia modyfikację tekstu i zapis.
-  - Zmiany są zapisywane i wpływają na plik PDF generowany przy pobieraniu.
-  - Brak wersjonowania; kolejne zapisy nadpisują poprzednią treść.
-
-- ID: US-008
   Tytuł: Pobranie listu motywacyjnego w PDF
   Opis: Jako użytkownik chcę pobrać ostateczny list w formacie PDF.
   Kryteria akceptacji:
   - System generuje PDF bez watermarków.
   - Plik PDF odzwierciedla aktualny stan tekstu zapisanego w edytorze.
 
-- ID: US-009
+- ID: US-008
   Tytuł: Przegląd profilu użytkownika
   Opis: Jako użytkownik chcę przeglądać moje przesłane CV i wygenerowane listy na stronie profilu.
   Kryteria akceptacji:
   - Profil pokazuje listę CV (z datą uploadu i metadanymi) i listów (z datą wygenerowania).
   - Możliwość usunięcia CV i listu ręcznie przed upływem 30 dni (jeśli zaimplementowane).  
 
-- ID: US-010
+- ID: US-009
   Tytuł: Logowanie zdarzeń do pliku
   Opis: Jako zespół techniczny chcemy zapisywać zdarzenia systemowe do pliku logów w celu zliczania KPI.
   Kryteria akceptacji:
   - Logi zawierają minimalne pola: timestamp, userId, eventType, metadata.
   - Logi rejestrują zdarzenia: CV_uploaded, Letter_generated, OCR_performed, Extraction_failed, File_deleted.
 
-- ID: US-011
+- ID: US-010
   Tytuł: Obsługa limitu
   Opis: Jako użytkownik chcę być informowany, gdy przekraczam limit 5 CV.
   Kryteria akceptacji:
   - Przy próbie przekroczenia limitu 5 CV użytkownik otrzymuje komunikat i upload jest odrzucony.
 
-- ID: US-012
+- ID: US-011
   Tytuł: Obsługa błędów ekstrakcji i UX komunikatu
   Opis: Jako użytkownik chcę otrzymać czytelny komunikat gdy ekstrakcja CV nie powiedzie się oraz propozycję następnego kroku.
   Kryteria akceptacji:
   - Jeśli ekstrakcja nie powiedzie się, system pokazuje komunikat "Brak danych: nie udało się wygenerować listu motywacyjnego" oraz wskazówkę: "Spróbuj przesłać inne CV lub poprawić skan".
 
-- ID: US-013
+- ID: US-012
   Tytuł: Bezpieczne uwierzytelnianie
   Opis: Jako użytkownik chcę bezpiecznie się uwierzytelnić, aby moje CV i listy były dostępne tylko dla mnie.
   Kryteria akceptacji:
@@ -154,7 +144,7 @@ Wielu kandydatów traci czas na ręczne dopasowywanie listów motywacyjnych do k
   - Sesje chronione mechanizmem sesji/tokenów.
   - Nieautoryzowany dostęp jest odrzucany (403/401).
 
-- ID: US-014
+- ID: US-013
   Tytuł: Edge case - upload uszkodzonego/nieczytelnego PDF
   Opis: Jako użytkownik chcę otrzymać jasny komunikat, gdy przesłany PDF jest uszkodzony lub nieczytelny.
   Kryteria akceptacji:

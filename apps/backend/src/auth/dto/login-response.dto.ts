@@ -22,7 +22,7 @@ export class LoginUserDto {
 
 /**
  * DTO for login response
- * Contains user data and JWT access token
+ * Contains user data (token is sent via httpOnly cookie)
  */
 export class LoginResponseDto {
   @ApiProperty({
@@ -30,11 +30,4 @@ export class LoginResponseDto {
     type: LoginUserDto,
   })
   user: LoginUserDto;
-
-  @ApiProperty({
-    description: 'JWT access token',
-    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-    type: String,
-  })
-  token: string;
 }

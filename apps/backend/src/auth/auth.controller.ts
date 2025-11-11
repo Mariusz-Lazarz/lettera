@@ -1,4 +1,5 @@
-import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import {
   ApiTags,
   ApiOperation,
@@ -78,8 +79,23 @@ export class AuthController {
   })
   async register(
     @Body() dto: RegisterRequestDto,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<RegisterResponseDto> {
-    return this.authService.register(dto);
+    const result = await this.authService.register(dto);
+    
+    // Set JWT token in httpOnly cookie
+    res.cookie('auth_token', result.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: '/',
+    });
+    
+    // Return user data without token in body
+    return {
+      user: result.user,
+    };
   }
 
   /**
@@ -132,7 +148,50 @@ export class AuthController {
       },
     },
   })
-  async login(@Body() dto: LoginRequestDto): Promise<LoginResponseDto> {
-    return this.authService.login(dto);
+  async login(
+    @Body() dto: LoginRequestDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<LoginResponseDto> {
+    const result = await this.authService.login(dto);
+    
+    // Set JWT token in httpOnly cookie
+    res.cookie('auth_token', result.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: '/',
+    });
+    
+    // Return user data without token in body
+    return {
+      user: result.user,
+    };
+  }
+
+  /**
+   * Logout user
+   * Clears the authentication cookie
+   */
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Logout user',
+    description: 'Clears the authentication cookie and ends the session.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User successfully logged out',
+  })
+  async logout(@Res({ passthrough: true }) res: Response): Promise<{ message: string }> {
+    // Clear the auth cookie
+    res.clearCookie('auth_token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+    });
+    
+    return { message: 'Logged out successfully' };
   }
 }

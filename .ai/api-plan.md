@@ -136,6 +136,17 @@ Simplified flow: the backend accepts direct uploads and performs the S3 upload i
   - 403 — not owner
   - 500 — PDF generation failed
 
+4) Delete letter
+- Method: DELETE
+- Path: `/letters/:id`
+- Description: Permanently deletes a letter belonging to the authenticated user. Frees up the user’s letter quota (max 5).
+- Response 204: No content (successful deletion).
+
+- Errors:
+  - 404 — letter not found
+  - 403 — not owner
+  - 500 — internal server error (database or storage issue)
+
 
 ## 3. Authentication & Authorization
 - Mechanism: JWT-based stateless authentication with short expiry and refresh token strategy if needed. Implement in NestJS using Passport/JWT strategy.
